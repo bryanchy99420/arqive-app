@@ -7,21 +7,23 @@ import {
 	Image,
 	Dimensions,
 	Touchable,
+	PermissionsAndroid,
 } from "react-native";
 import colors from "../config/colors";
 import React, { useEffect, useState, useRef } from "react";
 import { Marker, MAP_TYPES, PROVIDER_GOOGLE, UrlTile } from "react-native-maps";
 import MapView from "react-native-map-clustering";
 import { useNavigation } from "@react-navigation/native";
-import Geolocation from "react-native-geolocation-service";
+import * as Location from "expo-location";
+// import Geolocation from "react-native-geolocation-service";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
 
 const urlTemplate =
 	"https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png";
 
 const INITIAL_REGION = {
-	latitude: 34.0522,
-	longitude: -118.2437,
+	latitude: 80.0522,
+	longitude: 100.2437,
 	latitudeDelta: 0.3,
 	longitudeDelta: 0.3,
 };
@@ -46,9 +48,17 @@ export default function MapScreen() {
 	const [pullUpHeight, setPullUpHeight] = useState("0");
 	const [buttonOpacity, setButtonOpacity] = useState(1);
 	const [storyNum, setStoryNum] = useState(20);
+	const [gotLocation, setGotLocation] = useState(false);
+	const [location, setLocation] = useState({
+		latitude: 34.0522,
+		longitude: -118.2437,
+		latitudeDelta: 0.3,
+		longitudeDelta: 0.3,
+	});
 
 	useEffect(() => {
 		getPins();
+		// requestLocationPermission();
 	}, []);
 
 	const getPins = async () => {
@@ -61,52 +71,22 @@ export default function MapScreen() {
 		setPins(allPins);
 	};
 
-	// const requestLocationPermission = async () => {
-	// 	try {
-	// 		const granted = await PermissionsAndroid.request(
-	// 			PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-	// 			{
-	// 				title: "Geolocation Permission",
-	// 				message: "Can we access your location?",
-	// 				buttonNeutral: "Ask Me Later",
-	// 				buttonNegative: "Cancel",
-	// 				buttonPositive: "OK",
-	// 			}
-	// 		);
-	// 		console.log("granted", granted);
-	// 		if (granted === "granted") {
-	// 			console.log("You can use Geolocation");
-	// 			return true;
-	// 		} else {
-	// 			console.log("You cannot use Geolocation");
-	// 			return false;
-	// 		}
-	// 	} catch (err) {
-	// 		return false;
-	// 	}
-	// };
+	const getLocation = async () => {
+		let { status } = await Location.requestForegroundPermissionsAsync();
+		if (status !== "granted") {
+			//handle error here
+		}
 
-	// const getLocation = () => {
-	// 	const result = requestLocationPermission();
-	// 	result.then((res) => {
-	// 		console.log("res is:", res);
-	// 		if (res) {
-	// 			Geolocation.getCurrentPosition(
-	// 				(position) => {
-	// 					console.log(position);
-	// 					setLocation(position);
-	// 				},
-	// 				(error) => {
-	// 					// See error code charts below.
-	// 					console.log(error.code, error.message);
-	// 					setLocation(false);
-	// 				},
-	// 				{ enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-	// 			);
-	// 		}
-	// 	});
-	// console.log(location);
-	// };
+		let loc = await Location.getCurrentPositionAsync({});
+		const { latitudeDelta, longitudeDelta } = location;
+		setLocation({
+			latitude: loc.coords.latitude,
+			longitude: loc.coords.longitude,
+			latitudeDelta: latitudeDelta,
+			longitudeDelta: longitudeDelta,
+		});
+		setGotLocation(true);
+	};
 
 	const showMenu = (e, index) => {
 		setStoryNum(index);
@@ -156,8 +136,8 @@ export default function MapScreen() {
 						provider={PROVIDER_GOOGLE}
 						mapType={MAP_TYPES.NONE}
 						initialRegion={INITIAL_REGION}
-						showsUserLocation={true}
-						showsMyLocationButton={true}
+						showsUserLocation={false}
+						showsMyLocationButton={false}
 						rotateEnabled={false}
 						clusterColor={"#FFA500"}
 						clusterTextColor={"#000000"}
@@ -169,12 +149,6 @@ export default function MapScreen() {
 						toolbarEnabled={false}
 						flex={1}
 						onPress={mapCloseMenu}
-						// onLongPress={(event) => {
-						//     props.navigation.navigate("SubmitStoryModal", {
-						//         latitude: event.nativeEvent.coordinate.latitude,
-						//         longitude: event.nativeEvent.coordinate.longitude,
-						//     });
-						// }}
 					>
 						{pins.map((marker, index) => {
 							let pinType = "";
@@ -237,8 +211,14 @@ export default function MapScreen() {
 					<View style={styles.reroutingBtnOverlay}>
 						<View style={styles.reroutingBtn}>
 							<TouchableOpacity
-								onPress={() => console.log("Rerouting")}
-								// onPress={getLocation}
+								onPress={() => {
+									mapRef.current.animateToRegion({
+										latitude: location.latitude,
+										longitude: location.longitude,
+										latitudeDelta: 0.0922,
+										longitudeDelta: 0.0421,
+									});
+								}}
 								disabled={storyScreenOpened}
 							>
 								<View>
