@@ -4,10 +4,10 @@
     "slug": "thearqive",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/arqive_app_icon-01.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/color_splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
