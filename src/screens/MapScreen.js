@@ -22,8 +22,8 @@ const urlTemplate =
 	"https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png";
 
 const INITIAL_REGION = {
-	latitude: 80.0522,
-	longitude: 100.2437,
+	latitude: 34.0522,
+	longitude: -118.2437,
 	latitudeDelta: 0.3,
 	longitudeDelta: 0.3,
 };
@@ -58,7 +58,6 @@ export default function MapScreen() {
 
 	useEffect(() => {
 		getPins();
-		// requestLocationPermission();
 	}, []);
 
 	const getPins = async () => {
@@ -149,6 +148,12 @@ export default function MapScreen() {
 						toolbarEnabled={false}
 						flex={1}
 						onPress={mapCloseMenu}
+						// onLongPress={(event) => {
+						//     props.navigation.navigate("SubmitStoryModal", {
+						//         latitude: event.nativeEvent.coordinate.latitude,
+						//         longitude: event.nativeEvent.coordinate.longitude,
+						//     });
+						// }}
 					>
 						{pins.map((marker, index) => {
 							let pinType = "";
@@ -211,13 +216,16 @@ export default function MapScreen() {
 					<View style={styles.reroutingBtnOverlay}>
 						<View style={styles.reroutingBtn}>
 							<TouchableOpacity
+								// onPress={() => console.log("Rerouting")}
+								// onPress={getLocation}
 								onPress={() => {
-									mapRef.current.animateToRegion({
-										latitude: location.latitude,
-										longitude: location.longitude,
-										latitudeDelta: 0.0922,
-										longitudeDelta: 0.0421,
-									});
+									getLocation(),
+										mapRef.current.animateToRegion({
+											latitude: location.latitude,
+											longitude: location.longitude,
+											latitudeDelta: 0.0922,
+											longitudeDelta: 0.0421,
+										});
 								}}
 								disabled={storyScreenOpened}
 							>
